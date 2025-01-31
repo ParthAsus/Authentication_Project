@@ -21,7 +21,12 @@ const userSchema = mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'post'
     }
-  ]
+  ],
+  profilePic: {
+    filename: String,
+    data: Buffer,
+    contentType: String,
+  },
 });
 
 module.exports = mongoose.model('user', userSchema);

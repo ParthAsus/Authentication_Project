@@ -8,18 +8,23 @@
     <script>
       function toggleEditForm(postId, currentContent) {
         // Toggle the edit form visibility
-        document.getElementById("edit-form-" + postId).classList.toggle("hidden");
-        document.getElementById("post-content-" + postId).classList.toggle("hidden");
+        document
+          .getElementById("edit-form-" + postId)
+          .classList.toggle("hidden");
+        document
+          .getElementById("post-content-" + postId)
+          .classList.toggle("hidden");
 
         // Set current content to the textarea in the edit form
-        document.getElementById("edit-content-" + postId).value = currentContent;
-      };
+        document.getElementById("edit-content-" + postId).value =
+          currentContent;
+      }
 
-      function openModal(){
+      function openModal() {
         document.getElementById("uploadModal").classList.toggle("hidden");
-      };
-      
-      function closeModal(){
+      }
+
+      function closeModal() {
         document.getElementById("uploadModal").classList.add("hidden");
       }
     </script>
@@ -42,7 +47,7 @@
       <!-- Profile Section -->
       <div class="flex items-center space-x-4 border-b pb-4">
         <img
-          src="https://via.placeholder.com/80"
+          src="/profilePicture/<%= user._id %>"
           alt="Profile"
           class="w-16 h-16 rounded-full"
           onclick="openModal()"
@@ -75,72 +80,106 @@
       <div class="mt-6 space-y-4">
         <!-- Sample Post -->
         <% user.post.forEach(function(post){ %>
-          <div class="bg-gray-200 p-4 rounded-lg shadow-sm">
-            <div class="flex justify-between items-center">
-              <h3 class="font-semibold">@<%= user.username%></h3>
-              <div class="flex space-x-2">
-                <button
-                  class="text-blue-500 hover:underline"
-                  onclick="toggleEditForm('<%= post._id %>', '<%= post.content %>')"
-                >
-                  Edit
-                </button>
-                <a class="text-red-500 hover:underline" href="/posts/delete/<%= post._id %>">Delete</a>
+        <div class="bg-gray-200 p-4 rounded-lg shadow-sm">
+          <div class="flex justify-between items-center">
+            <h3 class="font-semibold">@<%= user.username%></h3>
+            <div class="flex space-x-2">
+              <button
+                class="text-blue-500 hover:underline"
+                onclick="toggleEditForm('<%= post._id %>', '<%= post.content %>')"
+              >
+                Edit
+              </button>
+              <a
+                class="text-red-500 hover:underline"
+                href="/posts/delete/<%= post._id %>"
+                >Delete</a
+              >
+            </div>
+          </div>
+          <p id="post-content-<%= post._id %>" class="text-gray-700 mt-2">
+            <%= post.content %>
+          </p>
+
+          <!-- Edit Form -->
+          <form
+            id="edit-form-<%= post._id %>"
+            class="hidden mt-2"
+            action="/posts/edit/<%= post._id %>"
+            method="post"
+          >
+            <textarea
+              id="edit-content-<%= post._id %>"
+              name="content"
+              class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              rows="3"
+              required
+            ></textarea>
+            <button
+              type="submit"
+              class="mt-2 w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+            >
+              Save Changes
+            </button>
+          </form>
+
+          <!-- Model -->
+          <form
+            action="/upload/profilePicture/<%= user._id %>"
+            method="post"
+            enctype="multipart/form-data"
+          >
+            <div
+              id="uploadModal"
+              class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden"
+            >
+              <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+                <!-- Modal Header -->
+                <div class="flex justify-between items-center mb-4">
+                  <h2 class="text-xl font-bold">Upload File</h2>
+                  <button
+                    onclick="closeModal()"
+                    class="text-gray-500 hover:text-gray-800"
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <!-- File Input -->
+                <input
+                  type="file"
+                  class="w-full border p-2 rounded-md"
+                  required
+                  name="profilePicture"
+
+                />
+
+                <!-- Modal Footer -->
+                <div class="mt-4 flex justify-end">
+                  <button
+                    onclick="closeModal()"
+                    class="bg-gray-400 text-white px-4 py-2 rounded-md mr-2 hover:bg-gray-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+                    type="submit"
+                  >
+                    Upload
+                  </button>
+                </div>
               </div>
             </div>
-            <p id="post-content-<%= post._id %>" class="text-gray-700 mt-2"><%= post.content %></p>
+          </form>
 
-            <!-- Edit Form -->
-            <form
-              id="edit-form-<%= post._id %>"
-              class="hidden mt-2"
-              action="/posts/edit/<%= post._id %>"
-              method="post"
-            >
-              <textarea
-                id="edit-content-<%= post._id %>"
-                name="content"
-                class="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                rows="3"
-                required
-              ></textarea>
-              <button
-                type="submit"
-                class="mt-2 w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
-              >
-                Save Changes
-              </button>
-            </form>
-
-            <!-- Model -->
-            <div id="uploadModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-              <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-                  <!-- Modal Header -->
-                  <div class="flex justify-between items-center mb-4">
-                      <h2 class="text-xl font-bold">Upload File</h2>
-                      <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800">&times;</button>
-                  </div>
-      
-                  <!-- File Input -->
-                  <input type="file" class="w-full border p-2 rounded-md">
-      
-                  <!-- Modal Footer -->
-                  <div class="mt-4 flex justify-end">
-                      <button onclick="closeModal()" class="bg-gray-400 text-white px-4 py-2 rounded-md mr-2 hover:bg-gray-500">
-                          Cancel
-                      </button>
-                      <button class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
-                          Upload
-                      </button>
-                  </div>
-              </div>
-          </div>
-      
-
-            <a class="mt-2 text-red-500 hover:text-red-800" href="/like/<%= post._id %>">
-              <%= post.likes.length %> Like
-            </a>
-          </div>
+          <a
+            class="mt-2 text-red-500 hover:text-red-800"
+            href="/like/<%= post._id %>"
+          >
+            <%= post.likes.length %> Like
+          </a>
+        </div>
         <% }) %>
       </div>
     </div>

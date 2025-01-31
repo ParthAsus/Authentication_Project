@@ -3,10 +3,9 @@ const app = express();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const session = require("express-session");
-const flash = require("connect-flash");
 const userModel = require("./models/user");
 const postModel = require("./models/post");
+const Multerupload = require('./config/multer');
 
 app.use(cookieParser());
 app.use(express.json());
@@ -196,4 +195,38 @@ app.get("/posts/delete/:id", async(req, res) => {
     console.log(err);
   }
 })
+
+app.post('/upload/profilePicture/:id', isLoggedInMiddleware, Multerupload.single('profilePicture'), async(req, res) => {
+  try{
+    if (!req.file) return res.status(400).send('No file uploaded.');
+    
+    const {originalname, mimetype, buffer} = req.file;
+    const userId = req.params.id;
+    await userModel.findByIdAndUpdate(userId, 
+      {
+        profilePic: {
+          filename: originalname,
+          data: buffer,
+          contentType: mimetype
+        }
+      }
+    );
+    res.redirect('/profile');
+  }catch(err){
+    console.log(err);
+  }
+});
+
+app.get('/profilePicture/:id', isLoggedInMiddleware, async(req, res) => {
+  try{
+    const user = await userModel.findById(req.params.id);
+    if(!user || !user.profilePic) res.status(404).send('Upload picture first...');
+    res.set('Content-Type', user.profilePic.contentType);
+    res.send(user.profilePic.data);
+
+  }catch(err){
+    console.log(err);
+  }
+});
+
 app.listen(3000);
