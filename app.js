@@ -229,4 +229,30 @@ app.get('/profilePicture/:id', isLoggedInMiddleware, async(req, res) => {
   }
 });
 
+// Home Page
+app.get('/homePage', async(req, res) => {
+  try{
+    const users = await userModel.find().populate('post');
+    res.render('homePage', {users});
+  }catch(err){
+    console.log(err);
+  }
+})
+
+app.get('/home/like/:id', isLoggedInMiddleware, async(req, res) => {
+  try{
+    const post = await postModel.findById({_id: req.params.id}).populate('user');
+    if(post.likes.indexOf(req.user.userId) === -1){
+      post.likes.push(req.user.userId);
+    }else{
+      post.likes.splice(post.likes.indexOf(req.user.userId), 1);
+    };
+    await post.save();  
+    res.redirect('/homePage');
+  }catch(err){
+    console.log(err);
+  }
+})
+
+
 app.listen(3000);
