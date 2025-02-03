@@ -1,38 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Post Gallery</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 h-full">
-  <div class="container mx-auto px-4 py-8">
-    <!-- Button at the top of the page -->
-    <button class="mb-8 px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"><a href="/profile">Add New Post</a></button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 h-full">
+    <div class="container mx-auto px-4 py-8">
+      <!-- Button at the top of the page -->
+      <button
+        class="mb-8 px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+      >
+        <a href="/profile">Add New Post</a>
+      </button>
 
-    <!-- Grid of posts -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-
-      <% users.forEach(function(user){ %>
-        <% user.post.forEach(function(post){ %>
-          <div class="post-card bg-white p-6 rounded-lg shadow-lg flex flex-col justify-between h-full">
-            <h3 class="text-xl font-semibold mb-4 text-blue-500">@<%= user.username  %></h3>
-            <p class="text-gray-700 mb-4 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+      <!-- Grid of posts -->
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+      >
+        <% users.forEach(function(user){ %> <% user.post.forEach(function(post){
+        %>
+          <div
+            class="post-card bg-white p-6 rounded-lg shadow-lg flex flex-col justify-between h-full cursor-pointer"
+            onclick="window.location.href='/homePage/post/<%= post._id %>'"
+          >
+            <h3 class="text-xl font-semibold mb-4 text-blue-500">
+              @<%= user.username %>
+            </h3>
+            <p
+              class="text-gray-700 mb-4 flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
+            >
               <%= post.content%>
             </p>
             <a
-            class="mt-2 text-red-500 hover:text-red-800"\
-            href="/home/like/<%= post._id%>">
-            <%= post.likes.length %> Like
-          </a>
+              class="mt-2 text-red-500 hover:text-red-800"
+              \
+              href="/home/like/<%= post._id%>"
+              onclick="event.stopPropagation();"
+            >
+              <%= post.likes.length %> Like
+            </a>
           </div>
-        <% }) %>
-      <% }) %>
-
-    
-
+        <% }) %> <% }) %>
+      </div>
     </div>
-  </div>
-</body>
+  </body>
 </html>

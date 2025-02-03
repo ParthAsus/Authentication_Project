@@ -5,7 +5,9 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const userModel = require("./models/user");
 const postModel = require("./models/post");
+const commentModel = require("./models/comment");
 const Multerupload = require('./config/multer');
+const comment = require("./models/comment");
 
 app.use(cookieParser());
 app.use(express.json());
@@ -253,6 +255,38 @@ app.get('/home/like/:id', isLoggedInMiddleware, async(req, res) => {
     console.log(err);
   }
 })
+
+// Comments
+app.get('/homePage/post/:id', isLoggedInMiddleware, async(req, res) => {
+  try{
+    const post = await postModel.findById({
+      _id: req.params.id
+    }).populate('user');
+
+
+    const comments = await commentModel.find({post: req.params.id}).populate('user');
+    res.render('viewPost', {post: post, comments: comments, user: req.user});
+  }catch(err){
+    console.log(err);
+  }
+})
+
+app.post('/post/comment/:id', isLoggedInMiddleware, async(req, res) => {
+  try{
+    const userId= req.user.userId;
+    const postId = req.params.id;
+
+    await commentModel.create({
+      user: userId,
+      post: postId,
+      content: req.body.comment
+    });
+
+    res.redirect('/homePage/post/' + postId);
+  }catch(err){
+    console.log(err);
+  }
+});
 
 
 app.listen(3000);
