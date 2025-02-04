@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser");
 const userModel = require("./models/user");
 const postModel = require("./models/post");
 const commentModel = require("./models/comment");
-const Multerupload = require('./config/multer');
+const Multerupload = require("./config/multer");
 const comment = require("./models/comment");
 
 app.use(cookieParser());
@@ -182,111 +182,187 @@ app.post("/posts/edit/:id", isLoggedInMiddleware, async (req, res) => {
 });
 
 // Delete
-app.get("/posts/delete/:id", async(req, res) => {
-  try{
+app.get("/posts/delete/:id", async (req, res) => {
+  try {
     const post = await postModel.findById(req.params.id);
     const user = await userModel.findById(post.user);
     user.post.pull(post._id);
     await user.save();
 
     await postModel.findOneAndDelete({
-      _id: req.params.id
+      _id: req.params.id,
     });
-    res.redirect('/profile');
-  }catch(err){
-    console.log(err);
-  }
-})
-
-app.post('/upload/profilePicture/:id', isLoggedInMiddleware, Multerupload.single('profilePicture'), async(req, res) => {
-  try{
-    if (!req.file) return res.status(400).send('No file uploaded.');
-    
-    const {originalname, mimetype, buffer} = req.file;
-    const userId = req.params.id;
-    await userModel.findByIdAndUpdate(userId, 
-      {
-        profilePic: {
-          filename: originalname,
-          data: buffer,
-          contentType: mimetype
-        }
-      }
-    );
-    res.redirect('/profile');
-  }catch(err){
+    res.redirect("/profile");
+  } catch (err) {
     console.log(err);
   }
 });
 
-app.get('/profilePicture/:id', isLoggedInMiddleware, async(req, res) => {
-  try{
-    const user = await userModel.findById(req.params.id);
-    if(!user || !user.profilePic) res.status(404).send('Upload picture first...');
-    res.set('Content-Type', user.profilePic.contentType);
-    res.send(user.profilePic.data);
+app.post(
+  "/upload/profilePicture/:id",
+  isLoggedInMiddleware,
+  Multerupload.single("profilePicture"),
+  async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).send("No file uploaded.");
 
-  }catch(err){
+      const { originalname, mimetype, buffer } = req.file;
+      const userId = req.params.id;
+      await userModel.findByIdAndUpdate(userId, {
+        profilePic: {
+          filename: originalname,
+          data: buffer,
+          contentType: mimetype,
+        },
+      });
+      res.redirect("/profile");
+    } catch (err) {
+      console.log(err);
+    }
+  }
+);
+
+app.get("/profilePicture/:id", isLoggedInMiddleware, async (req, res) => {
+  try {
+    const user = await userModel.findById(req.params.id);
+    if (!user || !user.profilePic)
+      res.status(404).send("Upload picture first...");
+    res.set("Content-Type", user.profilePic.contentType);
+    res.send(user.profilePic.data);
+  } catch (err) {
     console.log(err);
   }
 });
 
 // Home Page
-app.get('/homePage', async(req, res) => {
-  try{
-    const users = await userModel.find().populate('post');
-    res.render('homePage', {users});
-  }catch(err){
+app.get("/homePage", async (req, res) => {
+  try {
+    const users = await userModel.find().populate("post");
+    res.render("homePage", { users });
+  } catch (err) {
     console.log(err);
   }
-})
+});
 
-app.get('/home/like/:id', isLoggedInMiddleware, async(req, res) => {
-  try{
-    const post = await postModel.findById({_id: req.params.id}).populate('user');
-    if(post.likes.indexOf(req.user.userId) === -1){
+app.get("/home/like/:id", isLoggedInMiddleware, async (req, res) => {
+  try {
+    const post = await postModel
+      .findById({ _id: req.params.id })
+      .populate("user");
+    if (post.likes.indexOf(req.user.userId) === -1) {
       post.likes.push(req.user.userId);
-    }else{
+    } else {
       post.likes.splice(post.likes.indexOf(req.user.userId), 1);
-    };
-    await post.save();  
-    res.redirect('/homePage');
-  }catch(err){
+    }
+    await post.save();
+    res.redirect("/homePage");
+  } catch (err) {
     console.log(err);
   }
-})
+});
 
 // Comments
-app.get('/homePage/post/:id', isLoggedInMiddleware, async(req, res) => {
-  try{
-    const post = await postModel.findById({
-      _id: req.params.id
-    }).populate('user');
+app.get("/homePage/post/:id", isLoggedInMiddleware, async (req, res) => {
+  try {
+    const post = await postModel
+      .findById({
+        _id: req.params.id,
+      })
+      .populate("user");
+
+    const comments = await commentModel.find({ post: req.params.id }).populate("user");
+
+    const topLevelComments = comments.filter(
+      (comment) => !comment.parentComment
+    );
 
 
-    const comments = await commentModel.find({post: req.params.id}).populate('user');
-    res.render('viewPost', {post: post, comments: comments, user: req.user});
-  }catch(err){
+      topLevelComments.forEach((comment) => {
+        comment.replies = comments.filter(
+          (reply) =>
+            reply.parentComment &&
+            reply.parentComment.toString() === comment._id.toString()
+        );
+      });
+
+    res.render("viewPost", { post: post, comments: topLevelComments, user: req.user });
+  } catch (err) {
     console.log(err);
   }
-})
+});
 
-app.post('/post/comment/:id', isLoggedInMiddleware, async(req, res) => {
-  try{
-    const userId= req.user.userId;
+app.post("/post/comment/:id", isLoggedInMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
     const postId = req.params.id;
 
     await commentModel.create({
       user: userId,
       post: postId,
-      content: req.body.comment
+      content: req.body.comment,
     });
 
-    res.redirect('/homePage/post/' + postId);
+    res.redirect("/homePage/post/" + postId);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+app.post("/post/comment/delete/:id", isLoggedInMiddleware, async(req, res) => {
+  try{
+    const comment = await commentModel.findById({_id: req.params.id}).populate('post', 'user');
+    if(comment.user._id != req.user.userId){ 
+      res.status(403).send("You are not authorized to delete this comment");
+    }else{
+      await commentModel.findByIdAndDelete(req.params.id);
+      res.redirect("/homePage/post/" + comment.post._id);
+    }
+  }catch(err){
+    console.log(err);
+  }
+})
+
+app.post("/post/comment/edit/:id", isLoggedInMiddleware, async(req, res) => {
+  try{
+    const {editComment} = req.body;
+    const comment = await commentModel.findById({_id: req.params.id}).populate('user', 'post');
+    if(comment.user._id != req.user.userId){
+      res.status(403).send("You are not authorized to edit this comment");
+      res.redirect(`/homePage/post/${comment.post._id}`);
+    }else{
+      comment.content = editComment;
+      await comment.save();
+      res.redirect(`/homePage/post/${comment.post._id}`);
+    }
   }catch(err){
     console.log(err);
   }
 });
 
+// Reply
+app.post(
+  "/post/comment/replyComment/:id",
+  isLoggedInMiddleware,
+  async (req, res) => {
+    try {
+      const userId = req.user.userId;
+      const commentId = req.params.id;
+      const { replyContent } = req.body;
+
+      const originalComment = await commentModel.findById(commentId);
+
+      await commentModel.create({
+        user: userId,
+        post: originalComment.post,
+        content: replyContent,
+        parentComment: commentId,
+      });
+
+      res.redirect("/homePage/post/" + originalComment.post);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+);
 
 app.listen(3000);

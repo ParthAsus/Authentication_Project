@@ -1,120 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Twitter Style Post</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-gray-100 min-h-screen w-full flex flex-col p-4">
-    <div class="w-full bg-white shadow-lg rounded-lg p-6 flex flex-col">
-      <!-- Fixed Top Button (Back) -->
-      <div class="absolute top-4 left-4">
-        <a
-          class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-          href="/homePage"
-        >
-          Back
-        </a>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Twitter Style Post</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen w-full flex flex-col p-4">
+  <div class="w-full bg-white shadow-lg rounded-lg p-6 flex flex-col">
+    <!-- Fixed Top Button (Back) -->
+    <div class="absolute top-4 left-4">
+      <a class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition" href="/homePage">
+        Back
+      </a>
+    </div>
+
+    <!-- Post Section -->
+    <div class="pt-12 pb-6 border-b">
+      <h3 class="text-xl font-semibold text-gray-800">
+        @<%= post.user.username %>
+      </h3>
+      <p class="text-gray-700 mt-2">
+        <%= post.content %>
+      </p>
+    </div>
+
+    <!-- Comment Input Section -->
+    <form action="/post/comment/<%= post._id %>" method="post">
+      <div class="flex items-center mt-4 border-b pb-4">
+        <input type="text" placeholder="Write a comment..."
+          class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          required name="comment" />
+        <button class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition" type="submit">
+          Post
+        </button>
       </div>
+    </form>
 
-      <!-- Post Section -->
-      <div class="pt-12 pb-6 border-b">
-        <h3 class="text-xl font-semibold text-gray-800">
-          @<%= post.user.username %>
-        </h3>
-        <p class="text-gray-700 mt-2"><%= post.content %></p>
-      </div>
-
-      <!-- Comment Input Section -->
-      <form action="/post/comment/<%= post._id %>" method="post">
-        <div class="flex items-center mt-4 border-b pb-4">
-          <input
-            type="text"
-            placeholder="Write a comment..."
-            class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-            name="comment"
-          />
-          <button
-            class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-            type="submit"
-          >
-            Post
-          </button>
-        </div>
-      </form>
-
-      <% comments.forEach(function(comment){ %>
+    <% comments.forEach(function(comment) { %>
       <div class="mt-4 space-y-4">
         <!-- Single Comment -->
         <div class="border-b pb-4">
           <h4 class="font-semibold text-gray-800">
             @<%= comment.user.username %>
           </h4>
-          <p class="text-gray-700 mt-1"><%= comment.content %></p>
+          <p class="text-gray-700 mt-1">
+            <%= comment.content %>
+          </p>
           <div class="flex items-center mt-2 space-x-4 text-gray-500">
             <button class="hover:text-red-500">❤️ 12</button>
-            <button
-              class="hover:text-blue-500"
-              onclick="toggleReplyForm('<%= comment._id%>')"
-            >
+            <button class="hover:text-blue-500" onclick="toggleReplyForm('<%= comment._id%>')">
               💬 Reply
             </button>
 
-            <% if(user.userId.toString() === comment.user._id.toString()){ %>
-            <a
-              href="/comment/edit/<%= comment._id %>"
-              class="text-yellow-500 hover:text-yellow-600 ml-4"
-            >
-              ✏️ Edit
-            </a>
-
-            <form
-              action="/comment/delete/<%= comment._id %>"
-              method="POST"
-              class="inline"
-            >
-              <button
-                type="submit"
-                class="text-red-500 hover:text-red-600 ml-4"
-              >
-                🗑️ Delete
+            <% if(user.userId.toString()===comment.user._id.toString()){ %>
+              <button class="hover:text-yellow-500" onclick="toggleEditForm('<%= comment._id %>')">
+                ✏️ Edit
               </button>
-            </form>
-            <% } %>
+              <form action="/post/comment/delete/<%= comment._id %>" method="POST" class="inline">
+                <button class="hover:text-red-500" type="submit">🗑️ Delete</button>
+              </form>
+              <% } %>
           </div>
         </div>
 
-        <!-- Reply Form (Hidden Initially) -->
-        <div id="reply-form-<%= comment._id %>" class="mt-4 hidden">
-          <form action="/post/comment/replyComment/<%= post._id %>" method="post">
-            <div class="flex items-center">
-              <input
-                type="text"
-                name="replyContent"
-                placeholder="Write your reply..."
-                class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required
-              />
-              <button
-                type="submit"
-                class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-              >
-                Post Reply
-              </button>
-            </div>
-          </form>
-        </div>
-        <% }) %>
-      </div>
-    </div>
+        <!-- Render replies (if any) -->
+        <% if (comment.replies && comment.replies.length> 0) { %>
+          <div class="ml-6 mt-4 space-y-4">
+            <% comment.replies.forEach(function(reply) { %>
+              <div class="border-b pb-4">
+                <h4 class="font-semibold text-gray-800">
+                  @<%= reply.user.username %> (Reply)
+                </h4>
+                <p class="text-gray-700 mt-1">
+                  <%= reply.content %>
+                </p>
 
-    <script>
-      function toggleReplyForm(commentId) {
-        const replyForm = document.getElementById("reply-form-" + commentId);
-        replyForm.classList.toggle("hidden");
-      }
-    </script>
-  </body>
+                <button class="hover:text-red-500">❤️ 12</button>
+                <button class="hover:text-blue-500" onclick="toggleReplyForm('<%= comment._id%>')">
+                  💬 Reply
+                </button>
+
+                <% if(user.userId.toString()===reply.user._id.toString()){ %>
+                  <button class="hover:text-yellow-500" onclick="toggleEditForm('<%= reply._id %>')">
+                    ✏️ Edit
+                  </button>
+                  <form action="/post/comment/delete/<%= reply._id %>" method="POST" class="inline">
+                    <button class="hover:text-red-500" type="submit">🗑️ Delete</button>
+                  </form>
+                  <% } %>
+
+                  
+            <!-- Reply Edit Form (Hidden Initially) -->
+            <div id="edit-form-<%= reply._id %>" class="mt-4 hidden">
+              <form action="/post/comment/edit/<%= reply._id %>" method="post">
+                <input type="text" name="editComment" value="<%= reply.content %>"
+                  class="border border-gray-300 rounded-lg px-4 py-2" required />
+                <button type="submit"
+                  class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                  Save
+                </button>
+                <button type="button" onclick="toggleEditForm('<%= reply._id %>')"
+                  class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                  Cancel
+                </button>
+              </form>
+            </div>
+              </div>
+              <% }); %>
+          </div>
+          <% } %>
+
+            <!-- Edit Form (Hidden Initially) -->
+            <div id="edit-form-<%= comment._id %>" class="mt-4 hidden">
+              <form action="/post/comment/edit/<%= comment._id %>" method="post">
+                <input type="text" name="editComment" value="<%= comment.content %>"
+                  class="border border-gray-300 rounded-lg px-4 py-2" required />
+                <button type="submit"
+                  class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                  Save
+                </button>
+                <button type="button" onclick="toggleEditForm('<%= comment._id %>')"
+                  class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                  Cancel
+                </button>
+              </form>
+            </div>
+
+      </div>
+      <% }); %>
+
+  </div>
+  </div>
+
+  <script>
+    function toggleReplyForm(commentId) {
+      const replyForm = document.getElementById("reply-form-" + commentId);
+      replyForm.classList.toggle("hidden");
+    }
+    function toggleEditForm(commentId ) {
+      document.getElementById("edit-form-" + commentId).classList.toggle("hidden");
+    }
+
+  </script>
+</body>
+
 </html>
