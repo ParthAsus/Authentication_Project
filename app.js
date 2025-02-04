@@ -59,12 +59,16 @@ const verifyPassword = async function (password, hashedPassword) {
 };
 
 app.get("/", (req, res) => {
-  res.render("index");
+  res.redirect('/homePage');
 });
 
 app.get("/login", (req, res) => {
   res.render("login");
 });
+
+app.get('/register', (req, res) => {
+  res.render("index");
+})
 
 app.post("/register", async (req, res) => {
   try {
@@ -104,7 +108,7 @@ app.post("/login", async (req, res) => {
       if (isPasswordValid) {
         let token = generateToken(email, isUserExisted._id, "secret");
         res.cookie("auth_token", token);
-        res.redirect("/profile");
+        res.redirect("/homePage");
       } else {
         return res.redirect("/login");
       }
@@ -117,7 +121,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/logout", (req, res) => {
+app.get("/logout", isLoggedInMiddleware, (req, res) => {
   res.cookie("auth_token", "", { expires: new Date(0) });
   res.redirect("/login");
 });
@@ -182,7 +186,7 @@ app.post("/posts/edit/:id", isLoggedInMiddleware, async (req, res) => {
 });
 
 // Delete
-app.get("/posts/delete/:id", async (req, res) => {
+app.get("/posts/delete/:id", isLoggedInMiddleware, async (req, res) => {
   try {
     const post = await postModel.findById(req.params.id);
     const user = await userModel.findById(post.user);
@@ -340,10 +344,7 @@ app.post("/post/comment/edit/:id", isLoggedInMiddleware, async(req, res) => {
 });
 
 // Reply
-app.post(
-  "/post/comment/replyComment/:id",
-  isLoggedInMiddleware,
-  async (req, res) => {
+app.post("/post/comment/replyComment/:id", isLoggedInMiddleware, async (req, res) => {
     try {
       const userId = req.user.userId;
       const commentId = req.params.id;

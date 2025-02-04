@@ -11,9 +11,12 @@
 <body class="bg-gray-100 min-h-screen w-full flex flex-col p-4">
   <div class="w-full bg-white shadow-lg rounded-lg p-6 flex flex-col">
     <!-- Fixed Top Button (Back) -->
-    <div class="absolute top-4 left-4">
+    <div class="absolute top-6 left-6 flex space-x-4">
       <a class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition" href="/homePage">
         Back
+      </a>
+      <a class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition" href="/profile">
+        Profile
       </a>
     </div>
 
@@ -91,27 +94,40 @@
                     <button class="hover:text-red-500" type="submit">🗑️ Delete</button>
                   </form>
                   <% } %>
-
-                  
-            <!-- Reply Edit Form (Hidden Initially) -->
-            <div id="edit-form-<%= reply._id %>" class="mt-4 hidden">
-              <form action="/post/comment/edit/<%= reply._id %>" method="post">
-                <input type="text" name="editComment" value="<%= reply.content %>"
-                  class="border border-gray-300 rounded-lg px-4 py-2" required />
-                <button type="submit"
-                  class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
-                  Save
-                </button>
-                <button type="button" onclick="toggleEditForm('<%= reply._id %>')"
-                  class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
-                  Cancel
-                </button>
-              </form>
-            </div>
+                    <!-- Reply Edit Form (Hidden Initially) -->
+                    <div id="edit-form-<%= reply._id %>" class="mt-4 hidden">
+                      <form action="/post/comment/edit/<%= reply._id %>" method="post">
+                        <input type="text" name="editComment" value="<%= reply.content %>"
+                          class="border border-gray-300 rounded-lg px-4 py-2" required />
+                        <button type="submit"
+                          class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                          Save
+                        </button>
+                        <button type="button" onclick="toggleEditForm('<%= reply._id %>')"
+                          class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                          Cancel
+                        </button>
+                      </form>
+                    </div>
               </div>
               <% }); %>
           </div>
           <% } %>
+
+            <!-- Reply Form (Hidden Initially) -->
+            <div id="reply-form-<%= comment._id %>" class="mt-4 hidden">
+              <form action="/post/comment/replyComment/<%= comment._id %>" method="post">
+                <div class="flex items-center">
+                  <input type="text" name="replyContent" placeholder="Write your reply..."
+                    class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    required />
+                  <button type="submit"
+                    class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                    Post Reply
+                  </button>
+                </div>
+              </form>
+            </div>
 
             <!-- Edit Form (Hidden Initially) -->
             <div id="edit-form-<%= comment._id %>" class="mt-4 hidden">
@@ -140,7 +156,7 @@
       const replyForm = document.getElementById("reply-form-" + commentId);
       replyForm.classList.toggle("hidden");
     }
-    function toggleEditForm(commentId ) {
+    function toggleEditForm(commentId) {
       document.getElementById("edit-form-" + commentId).classList.toggle("hidden");
     }
 
